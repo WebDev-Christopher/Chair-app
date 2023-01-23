@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chair;
+use App\Models\User;
+use App\Mail\AddedChair;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class ChairController extends Controller
 {
@@ -15,8 +18,9 @@ class ChairController extends Controller
      */
     public function index()
     {
-        $items = Chair::all();
-        return view('pages.chairs.index')->with(compact("items"));
+        $items = Chair::all()->sortByDesc("created_at");
+        $user = Auth::user();
+        return view('pages.chairs.index')->with(compact("items", "user"));
     }
 
     /**
@@ -38,7 +42,7 @@ class ChairController extends Controller
      */
     public function createChair(Request $request)
     {
-        $user_data = $request->validate([
+        $chair_data = $request->validate([
             'user_id' => 'required',
             'name' => 'required',
             'amount' => 'required',
@@ -46,7 +50,13 @@ class ChairController extends Controller
             'image' => 'required',
         ]);
 
-        if(Chair::create($user_data)) {
+        $allUsers = User::all();
+        $CreateChair = Chair::create($chair_data);
+
+        
+
+        if($allUsers || $CreateChair) {
+            Mail::to($allUsers)->queue(new AddedChair($CreateChair));
             return redirect('/')->with('message', 'Chair has been created');
         }
         else {
@@ -63,8 +73,9 @@ class ChairController extends Controller
      */
     public function show($id)
     {
-        $chair = Chair::find($id);
-        return view('pages.chairs.show')->with(compact('chair'));
+        $item = Chair::find($id);
+        $user = Auth::user();
+        return view('pages.chairs.show')->with(compact('item', 'user'));
     }
 
     /**
@@ -88,7 +99,7 @@ class ChairController extends Controller
      */
     public function updateChair(Request $request)
     {
-        $user_data = $request->validate([
+        $chair_data = $request->validate([
             'id' => 'required',
             'user_id' => 'required',
             'name' => 'required',
@@ -99,8 +110,8 @@ class ChairController extends Controller
 
         $user = Auth::user();
 
-        if ($user->id == $user_data['user_id']) {
-            if(Chair::where('id', $user_data["id"])->update(['name'=> $user_data["name"], 'amount'=> $user_data["amount"], 'body'=> $user_data["body"]])) {
+        if ($user->id == $chair_data['user_id']) {
+            if(Chair::where('id', $chair_data["id"])->update(['name'=> $chair_data["name"], 'amount'=> $chair_data["amount"], 'body'=> $chair_data["body"]])) {
                 return redirect('/')->with('message', 'Chair has been updated');
             }
             else {

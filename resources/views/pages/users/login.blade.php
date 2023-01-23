@@ -1,16 +1,8 @@
 @extends('layout')
 @section('main')
+    <h1 class="text-center mt-5">Login</h1>
     @include('components.loginform')
-    <p>Don't have an account? <a href="/register">Register here</a></p>
+    <p class="text-center">Don't have an account? <a href="/register">Register here</a></p>
     
-    @if ($errors->any() || session()->has('message'))
-    <div class="text-danger">
-        <ul class="list-unstyled">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-            <li>{{ session()->get('message') }}</li>
-        </ul>
-    </div>
-    @endif
+    @include('components.erroroutput', ['errors' => $errors])
 @endsection

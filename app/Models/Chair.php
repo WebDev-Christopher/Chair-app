@@ -21,4 +21,8 @@ class Chair extends Model
         'body',
         'image',
     ];
+
+    // public function getAllChairs() {
+    //     return $this::all();
+    // }
 }

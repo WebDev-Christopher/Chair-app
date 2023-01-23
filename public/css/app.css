@@ -6,9 +6,3 @@
 body {
     scroll-behavior: smooth;
 }
-
-#usersform {
-    width: 50%;
-    margin: auto;
-    margin-top: 50px;
-}
