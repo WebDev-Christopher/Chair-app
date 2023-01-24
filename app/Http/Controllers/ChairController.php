@@ -9,6 +9,7 @@ use App\Mail\AddedChair;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class ChairController extends Controller
 {
@@ -142,7 +143,11 @@ class ChairController extends Controller
      */
     public function deleteChair($id)
     {   
+        $chair = Chair::select('image')->where('id', $id)->first();
+
+        $imagedeletion = Storage::disk('local')->delete('public/chairImages/'.$chair["image"]);
+        
         Chair::where('id', $id)->delete();
-        return redirect('/');
+        return redirect('/')->with('message', "chair has succesfully been deleted");
     }
 }
