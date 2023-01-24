@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Uuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Chair extends Model
 {
     use HasFactory;
+    use Uuid;
 
     /**
      * The attributes that are mass assignable.
