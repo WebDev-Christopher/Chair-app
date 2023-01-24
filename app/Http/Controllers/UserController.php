@@ -3,11 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Chair;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
 class UserController extends Controller
 {
+    protected $chairs;
+    protected $users;
+
+    public function __construct(){
+        $this->chairs = new Chair();
+        $this->users = new User();
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -74,6 +83,8 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8'
         ]);
+
+        $user_data["password"] = password_hash($user_data["password"], PASSWORD_DEFAULT);
 
         if(auth()->login(User::create($user_data))) {
             $request->session()->regenerate();

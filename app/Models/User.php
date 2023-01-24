@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Traits\Uuid;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -43,6 +44,24 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'admin',
     ];
+
+    public function getCurrentUser()
+    {
+        return Auth::user();
+    }
+
+    public function getAllUsers()
+    {
+        return Auth::user();
+    }
+    
+    /**
+     * Get the comments for the blog post.
+     */
+    public function posts()
+    {
+        return $this->hasMany(User::class);
+    }
 
     public function getCompanyID()
     {

@@ -13,6 +13,15 @@ use Illuminate\Support\Facades\Storage;
 
 class ChairController extends Controller
 {
+
+    protected $chairs;
+    protected $users;
+
+    public function __construct(){
+        $this->chairs = new Chair();
+        $this->users = new User();
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -20,9 +29,10 @@ class ChairController extends Controller
      */
     public function index()
     {
-        $items = Chair::all()->sortByDesc("created_at");
-        $user = Auth::user();
-        return view('pages.chairs.index')->with(compact("items", "user"));
+        return view('pages.chairs.index', [ 
+            'items' => $this->chairs->getAllChairs(), 
+            'user' => $this->users->getCurrentUser() 
+        ]);
     }
 
     /**
@@ -32,8 +42,9 @@ class ChairController extends Controller
      */
     public function createForm()
     {
-        $user = Auth::user();
-        return view('pages.chairs.create')->with(compact("user"));
+        return view('pages.chairs.create', [ 
+            'user' => $this->users->getCurrentUser() 
+        ]);
     }
 
     /**
@@ -61,8 +72,8 @@ class ChairController extends Controller
 
         $chair_data["image"] = $file_prefix . "." . $imageExtension;
 
-        $allUsers = User::all();
-        $CreateChair = Chair::create($chair_data);
+        $allUsers = $this->users->getAllUsers();
+        $CreateChair = $this->chairs->createChair($chair_data);
 
         if($allUsers || $CreateChair) {
             Mail::to($allUsers)->queue(new AddedChair($CreateChair));
@@ -82,9 +93,10 @@ class ChairController extends Controller
      */
     public function show($id)
     {
-        $item = Chair::find($id);
-        $user = Auth::user();
-        return view('pages.chairs.show')->with(compact('item', 'user'));
+        return view('pages.chairs.show', [ 
+            'user' => $this->users->getCurrentUser(), 
+            'item' => $this->chairs->getChairsbyID($id) 
+        ]);
     }
 
     /**
@@ -95,8 +107,9 @@ class ChairController extends Controller
      */
     public function updateForm($id)
     {
-        $item = Chair::find($id);
-        return view('pages.chairs.update')->with(compact('item'));
+        return view('pages.chairs.update', [ 
+            'item' => $this->chairs->getChairsbyID($id) 
+        ]);
     }
 
     /**
@@ -119,10 +132,10 @@ class ChairController extends Controller
             'new_image.*' => 'mimes:jpg,png,jpeg,gif,svg'
         ]);
 
-        $user = Auth::user();
+        $user = $this->users->getCurrentUser();
 
         if ($user->id == $chair_data['user_id']) {
-            if ($chair_data["new_image"]) {
+            if (isset($chair_data["new_image"])) {
 
                 $chair = Chair::select('image')->where('id', $chair_data["id"])->first();
                 $imagedeletion = Storage::disk('local')->delete('public/chairImages/'.$chair["image"]);
@@ -132,7 +145,7 @@ class ChairController extends Controller
                 $name = $request->file('new_image')->storeAs('/public/chairImages' , $file_prefix . "." . $imageExtension);
                 $chair_data["new_image"] = $file_prefix . "." . $imageExtension;
 
-                if(Chair::where('id', $chair_data["id"])->update(['name'=> $chair_data["name"], 'amount'=> $chair_data["amount"], 'body'=> $chair_data["body"], 'image'=> $chair_data["new_image"]])) {
+                if($this->chairs->updateChair($chair_data["id"], $chair_data["name"], $chair_data["amount"], $chair_data["body"], $chair_data["new_image"])) {
                     return redirect('/')->with('message', 'Chair has been updated');
                 }
                 else {
@@ -140,7 +153,7 @@ class ChairController extends Controller
                 }
             }
             else {
-                if(Chair::where('id', $chair_data["id"])->update(['name'=> $chair_data["name"], 'amount'=> $chair_data["amount"], 'body'=> $chair_data["body"], 'image'=> $chair_data["image"]])) {
+                if($this->chairs->updateChair($chair_data["id"], $chair_data["name"], $chair_data["amount"], $chair_data["body"], $chair_data["image"])) {
                     return redirect('/')->with('message', 'Chair has been updated');
                 }
                 else {
@@ -163,11 +176,10 @@ class ChairController extends Controller
      */
     public function deleteChair($id)
     {   
-        $chair = Chair::select('image')->where('id', $id)->first();
-
+        $chair = $this->chairs->selectChairimagebyID($id);
         $imagedeletion = Storage::disk('local')->delete('public/chairImages/'.$chair["image"]);
         
-        Chair::where('id', $id)->delete();
+        $this->chairs->deleteChairsbyID($id);
         return redirect('/')->with('message', "chair has succesfully been deleted");
     }
 }
