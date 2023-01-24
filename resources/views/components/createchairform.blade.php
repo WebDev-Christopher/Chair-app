@@ -1,4 +1,4 @@
-<form class="d-flex flex-column w-50 m-auto mt-5" action="{{ route("createChair") }}" method="post">
+<form class="d-flex flex-column w-50 m-auto mt-5" action="{{ route("createChair") }}" enctype="multipart/form-data" method="post">
     @csrf
     <input type="hidden" name="user_id" value="{{$user->id}}" >
     <input type="text" name="name" placeholder="Title" class="mb-3 py-2 px-2">

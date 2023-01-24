@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Chair;
+use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Chair;
 use App\Mail\AddedChair;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,13 +48,21 @@ class ChairController extends Controller
             'name' => 'required',
             'amount' => 'required',
             'body' => 'required',
-            'image' => 'required',
+            'image' => 'required|image|max:2048',
+            'image.*' => 'mimes:jpg,png,jpeg,gif,svg'
         ]);
+
+        // $currentDate = new \DateTime();
+        $mytime = date('m-Y-h-i-s');
+
+        $file_prefix = $mytime . '_' ."chair-image";
+        $imageExtension = $request->image->getClientOriginalExtension();
+        $name = $request->file('image')->storeAs('/public/chairImages' , $file_prefix . "." . $imageExtension);
+
+        $chair_data["image"] = $file_prefix . "." . $imageExtension;
 
         $allUsers = User::all();
         $CreateChair = Chair::create($chair_data);
-
-        
 
         if($allUsers || $CreateChair) {
             Mail::to($allUsers)->queue(new AddedChair($CreateChair));
