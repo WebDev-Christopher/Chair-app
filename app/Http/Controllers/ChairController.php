@@ -53,7 +53,6 @@ class ChairController extends Controller
             'image.*' => 'mimes:jpg,png,jpeg,gif,svg'
         ]);
 
-        // $currentDate = new \DateTime();
         $mytime = date('m-Y-h-i-s');
 
         $file_prefix = $mytime . '_' ."chair-image";
@@ -116,16 +115,37 @@ class ChairController extends Controller
             'amount' => 'required',
             'body' => 'required',
             'image' => 'required',
+            'new_image' => 'max:2048',
+            'new_image.*' => 'mimes:jpg,png,jpeg,gif,svg'
         ]);
 
         $user = Auth::user();
 
         if ($user->id == $chair_data['user_id']) {
-            if(Chair::where('id', $chair_data["id"])->update(['name'=> $chair_data["name"], 'amount'=> $chair_data["amount"], 'body'=> $chair_data["body"]])) {
-                return redirect('/')->with('message', 'Chair has been updated');
+            if ($chair_data["new_image"]) {
+
+                $chair = Chair::select('image')->where('id', $chair_data["id"])->first();
+                $imagedeletion = Storage::disk('local')->delete('public/chairImages/'.$chair["image"]);
+                $mytime = date('m-Y-h-i-s');
+                $file_prefix = $mytime . '_' ."chair-image";
+                $imageExtension = $request->file("new_image")->getClientOriginalExtension();
+                $name = $request->file('new_image')->storeAs('/public/chairImages' , $file_prefix . "." . $imageExtension);
+                $chair_data["new_image"] = $file_prefix . "." . $imageExtension;
+
+                if(Chair::where('id', $chair_data["id"])->update(['name'=> $chair_data["name"], 'amount'=> $chair_data["amount"], 'body'=> $chair_data["body"], 'image'=> $chair_data["new_image"]])) {
+                    return redirect('/')->with('message', 'Chair has been updated');
+                }
+                else {
+                    return redirect()->back()->with('message', "Chair could not be updated");
+                }
             }
             else {
-                return redirect()->back()->with('message', "Chair could not be updated");
+                if(Chair::where('id', $chair_data["id"])->update(['name'=> $chair_data["name"], 'amount'=> $chair_data["amount"], 'body'=> $chair_data["body"], 'image'=> $chair_data["image"]])) {
+                    return redirect('/')->with('message', 'Chair has been updated');
+                }
+                else {
+                    return redirect()->back()->with('message', "Chair could not be updated");
+                }
             }
         }
         else {
