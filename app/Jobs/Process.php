@@ -14,21 +14,13 @@ class Process implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The podcast instance.
-     *
-     * @var \App\Models\Chair
-     */
-    public $chair;
-
-    /**
      * Create a new job instance.
      *
-     * @param  App\Models\Chair  $podcast
      * @return void
      */
-    public function __construct(Chair $chair)
+    public function __construct()
     {
-        $this->chair = $chair;
+        //
     }
 
     /**

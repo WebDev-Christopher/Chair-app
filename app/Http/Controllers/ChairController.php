@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\ChairCreateRequest;
+use App\Http\Requests\ChairUpdateRequest;
 
 class ChairController extends Controller
 {
@@ -50,19 +52,12 @@ class ChairController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\ChairCreateRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function createChair(Request $request)
+    public function createChair(ChairCreateRequest $request)
     {
-        $chair_data = $request->validate([
-            'user_id' => 'required',
-            'name' => 'required',
-            'amount' => 'required',
-            'body' => 'required',
-            'image' => 'required|image|max:2048',
-            'image.*' => 'mimes:jpg,png,jpeg,gif,svg'
-        ]);
+        $chair_data = $request->validated();
 
         $mytime = date('m-Y-h-i-s');
 
@@ -74,6 +69,7 @@ class ChairController extends Controller
 
         $allUsers = $this->users->getAllUsers();
         $CreateChair = $this->chairs->createChair($chair_data);
+        $CreateChair["email_to"] = $allUsers;
 
         if($allUsers || $CreateChair) {
             Mail::to($allUsers)->queue(new AddedChair($CreateChair));
@@ -115,22 +111,13 @@ class ChairController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\ChairUpdateRequest  $request
      * @param  \App\Models\Chair  $chair
      * @return \Illuminate\Http\Response
      */
-    public function updateChair(Request $request)
+    public function updateChair(ChairUpdateRequest $request)
     {
-        $chair_data = $request->validate([
-            'id' => 'required',
-            'user_id' => 'required',
-            'name' => 'required',
-            'amount' => 'required',
-            'body' => 'required',
-            'image' => 'required',
-            'new_image' => 'max:2048',
-            'new_image.*' => 'mimes:jpg,png,jpeg,gif,svg'
-        ]);
+        $chair_data = $request->validated();
 
         $user = $this->users->getCurrentUser();
 
